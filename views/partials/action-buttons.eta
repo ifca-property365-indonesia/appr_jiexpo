@@ -1,6 +1,6 @@
 <%/* Approve / Revise / Reject buttons. Data: link (route segment, e.g. 'cbppu'), encrypt. */%>
 <div style="text-align:center; margin:20px 0;">
 <% for (const [code, label, color] of [['A', 'Approve', '#1ee0ac'], ['R', 'Revise', '#f4bd0e'], ['C', 'Reject', '#e85347']]) { %>
-  <a href="<%= url('api/' + it.link + '/' + code + '/' + it.encrypt) %>" class="button" style="display:inline-block; font-size:13px; font-weight:600; text-transform:uppercase; text-decoration:none; background-color:<%= color %>; color:#ffffff; padding:10px 30px; border-radius:3px; margin:2px;"><%= label %></a>
+  <a href="<%= url('api/' + it.link + '/' + code + '/' + it.encrypt) %>" class="button" style="display:inline-block; font-family:Arial, Helvetica, sans-serif; font-size:14px; font-weight:600; text-transform:uppercase; text-decoration:none; background-color:<%= color %>; color:#ffffff; padding:10px 30px; border-radius:3px; margin:2px;"><%= label %></a>
 <% } %>
 </div>

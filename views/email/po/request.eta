@@ -1,6 +1,6 @@
 <%/* Purchase Requisition (PoRequest, via /api/maildata). Ported from email/por/send.blade.php. */%>
 <% layout('/layouts/email') %>
-<h5 style="font-size:20px; font-weight:400; margin:0 0 15px;">Dear <%= it.user_name %>,</h5>
+<p style="margin:0 0 15px;">Dear <%= it.user_name %>,</p>
 <p style="margin:0 0 15px;">Below is a request to purchase that requires your approval :</p>
 <p style="margin:0 0 15px;">
   <b><%= it.req_hd_descs %></b><br>

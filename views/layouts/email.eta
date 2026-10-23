@@ -1,6 +1,8 @@
 <%/*
   Shared layout for every outgoing email.
   Data: entity_name (header name + logo), body (rendered child template).
+  Font standard for the email body: Arial, Helvetica, sans-serif, 14px / 22px. Child templates must not set
+  their own font-family or font-size; header (16px) and footer (13px) sit outside the body.
 */%>
 <!DOCTYPE html>
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
@@ -14,6 +16,10 @@
     body, table, td, p { margin: 0; padding: 0; }
     img { border: 0; line-height: 0; }
     table { border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+    /* Outlook does not inherit fonts into tables: repeat the body standard on every text element */
+    .content, .content p, .content td, .content th, .content li, .content a, .content span {
+      font-family: Arial, Helvetica, sans-serif; font-size: 14px;
+    }
     @media screen and (max-width: 600px) {
       .main-container { width: 100% !important; }
       .button { display: block !important; width: 100% !important; margin-bottom: 10px !important; }
@@ -30,17 +36,17 @@
           <tr>
             <td align="center" style="padding-bottom:25px;">
               <img src="<%= logo(it.entity_name) %>" alt="logo" height="56" style="display:inline-block; border:0; outline:none; text-decoration:none;">
-              <p style="font-size:16px; color:#026735; margin:10px 0 0;"><%= entityName(it.entity_name) %></p>
+              <p style="font-family:Arial, Helvetica, sans-serif; font-size:16px; color:#026735; margin:10px 0 0;"><%= entityName(it.entity_name) %></p>
             </td>
           </tr>
           <tr>
-            <td class="content" style="background-color:#e0e0e0; padding:30px; color:#000000; font-size:14px; line-height:22px; text-align:left;">
+            <td class="content" style="background-color:#e0e0e0; padding:30px; color:#000000; font-family:Arial, Helvetica, sans-serif; font-size:14px; line-height:22px; text-align:left;">
               <%~ it.body %>
               <p style="margin:15px 0;"><b>Please do not reply, as this is an automated-generated email.</b></p>
             </td>
           </tr>
           <tr>
-            <td align="center" style="padding:25px 10px 0; font-size:13px; color:#555555;">
+            <td align="center" style="padding:25px 10px 0; font-family:Arial, Helvetica, sans-serif; font-size:13px; color:#555555;">
               Copyright © <%= new Date().getFullYear() %> IFCA Software. All rights reserved.
             </td>
           </tr>

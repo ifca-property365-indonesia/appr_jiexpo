@@ -1,6 +1,6 @@
 <%/* Contract Complete (cmdone) / Contract Close (cmclose). Ported from email/cmdone|cmclose/send.blade.php. Data: label. */%>
 <% layout('/layouts/email') %>
-<h5 style="font-size:20px; font-weight:400; margin:0 0 15px;">Dear <%= it.user_name %>,</h5>
+<p style="margin:0 0 15px;">Dear <%= it.user_name %>,</p>
 <p style="margin:0 0 15px;">Below is a <%= it.label %> that requires your approval :</p>
 <p style="margin:0 0 15px;"><b><%= it.descs %></b></p>
 <%~ include('/partials/attachments', { attachments: it.attachments, intro: 'To view a detailed product list, description, and estimate price per item, please click on the link below :' }) %>

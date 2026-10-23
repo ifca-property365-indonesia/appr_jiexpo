@@ -1,6 +1,6 @@
 <%/* Purchase Selection / Quotation (POST /api/purchase_selection). Ported from email/pos/send.blade.php. */%>
 <% layout('/layouts/email') %>
-<h5 style="font-size:20px; font-weight:400; margin:0 0 15px;">Dear <%= it.user_name %>,</h5>
+<p style="margin:0 0 15px;">Dear <%= it.user_name %>,</p>
 <p style="margin:0 0 15px;">Below is a quotation that requires your approval :</p>
 <p style="margin:0 0 15px;">
   <b><%= it.po_descs %></b><br>

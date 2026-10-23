@@ -1,6 +1,6 @@
 <%/* Contract Progress (cmprogress / cmprogresswu). Ported from email/cmprogress|cmprogresswu/send.blade.php. */%>
 <% layout('/layouts/email') %>
-<h5 style="font-size:20px; font-weight:400; margin:0 0 15px;">Dear <%= it.user_name %>,</h5>
+<p style="margin:0 0 15px;">Dear <%= it.user_name %>,</p>
 <p style="margin:0 0 15px;">Below is a Contract Progress that requires your approval :</p>
 <p style="margin:0 0 15px;">
   <b>Contract No. :<%= it.contract_desc %></b><br>

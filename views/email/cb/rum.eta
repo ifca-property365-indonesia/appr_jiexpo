@@ -1,6 +1,6 @@
 <%/* Cash Advance Settlement (CbRum, via /api/maildata). Ported from email/cbrum/send.blade.php. */%>
 <% layout('/layouts/email') %>
-<h5 style="font-size:20px; font-weight:400; margin:0 0 15px;">Dear <%= it.user_name %>,</h5>
+<p style="margin:0 0 15px;">Dear <%= it.user_name %>,</p>
 <p style="margin:0 0 15px;">Below is a cash advance settlement that requires your approval :</p>
 <p style="margin:0 0 15px;">
   <b><%= it.remarks_hd %></b><br>

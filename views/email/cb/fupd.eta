@@ -1,6 +1,6 @@
 <%/* Propose Transfer to Bank (CbFupd, via /api/maildata). Ported from email/cbfupd/send.blade.php. */%>
 <% layout('/layouts/email') %>
-<h5 style="font-size:20px; font-weight:400; margin:0 0 15px;">Dear <%= it.user_name %>,</h5>
+<p style="margin:0 0 15px;">Dear <%= it.user_name %>,</p>
 <p style="margin:0 0 15px;">Below is a propose to transfer that requires your approval :</p>
 <p style="margin:0 0 15px;">
   <b><%= it.band_hd_descs %></b><br>

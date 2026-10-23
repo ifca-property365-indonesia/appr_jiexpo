@@ -19,6 +19,8 @@ Source app: `../approval_jiexpo` (Laravel 10). Reference port: `src/modules/cb/c
 - `views/` — Eta templates (`.eta`). `layouts/email.eta` (header logo + entity name, grey body, "do not reply", footer),
   `layouts/page.eta`, `pages/confirm.eta`, `pages/result.eta`, `partials/{action-buttons,attachments,approvers,signature,detail-table}.eta`.
   Email templates: `views/email/<group>/<name>.eta`, starting with `<% layout('/layouts/email') %>`.
+  Body text standard: Arial, Helvetica, sans-serif 14px (set by `layouts/email.eta`). Templates must not set their own
+  font-family / font-size or use headings (`<h1>`..`<h6>`); bold (`<b>`) is fine.
   Helpers available unprefixed in templates: `url, asset, logo, entityName, isFilled, numberFormat, formatDate, safeNumber, safeDateFormat`.
   Use `<%= %>` (escaped). Use `<%~ %>` only for `include(...)` / trusted HTML.
 
