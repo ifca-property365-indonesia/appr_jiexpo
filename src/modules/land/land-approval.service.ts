@@ -44,7 +44,7 @@ export class LandApprovalService {
     }
   }
 
-  /** GET /api/<link>/:status/:encrypt — remark/passcheckwithremark (hidden "no reason" on approve). */
+  /** GET /api/<link>/:status/:encrypt — remark/passcheckwithremark (hidden "no note" on approve). */
   confirm(def: LandDefinition, status: string, encrypt: string): Promise<string> {
     return this.approval.confirmationPage({
       status,
@@ -63,7 +63,7 @@ export class LandApprovalService {
       : data.level_no;
     const args = def.args
       ? def.args(data, status, body)
-      : [data.entity_cd, data.doc_no, status, levelNo, normalizeReason(body.reason, 'no reason')];
+      : [data.entity_cd, data.doc_no, status, levelNo, normalizeReason(body.reason, 'no note')];
     return this.approval.runAction({
       status,
       docNo: data.doc_no,

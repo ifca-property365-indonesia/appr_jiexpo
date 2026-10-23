@@ -105,7 +105,7 @@ export class PlOverwriteService {
         data.doc_no,
         status,
         data.level_no,
-        normalizeReason(body.reason, 'no reason'),
+        normalizeReason(body.reason, 'no note'),
       ],
       entityName: data.entity_name,
     });

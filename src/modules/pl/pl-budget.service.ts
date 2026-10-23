@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ApprovalService, type LinkData } from '../../common/approval/approval.service';
+import { normalizeReason } from '../../common/approval/approval-status';
 import {
   approverList,
   emailInput,
@@ -133,7 +134,7 @@ export class PlBudgetService {
     });
   }
 
-  /** POST /api/<link>/getaccess — the reason typed by the approver is not passed to these SPs. */
+  /** POST /api/<link>/getaccess — the approver's reason goes to @rt_remarks (blank → "no note"). */
   async update(variant: PlBudgetVariant, body: RequestInput): Promise<string> {
     const status = input(body, 'status') ?? '';
     const data = await this.approval.links.resolve<LinkData>(input(body, 'encrypt') ?? '');
@@ -150,6 +151,7 @@ export class PlBudgetService {
         status,
         data.level_no,
         data.user_id,
+        normalizeReason(body.reason, 'no note'),
       ],
       entityName: data.entity_name,
     });

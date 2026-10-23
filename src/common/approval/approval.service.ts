@@ -28,7 +28,7 @@ export interface ConfirmForm {
   /**
    * What the approver sees for status A:
    * 'none' (default) nothing, 'comment' an optional "Add Comment" textarea,
-   * 'hidden' a hidden reason="no reason" field.
+   * 'hidden' a hidden reason="no note" field.
    */
   reasonOnApprove?: 'none' | 'comment' | 'hidden';
   /** false → never show the reason textarea (Laravel passchecknoremark). Default true. */

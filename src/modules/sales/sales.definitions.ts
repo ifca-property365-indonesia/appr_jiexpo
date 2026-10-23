@@ -24,8 +24,8 @@ const deactiveArgs: ApprovalDefinition['args'] = (d, status, reason) => [
   reason,
 ];
 
-/** Booking discount / package: (entity_cd, project_no, doc_no, lot_no, status, level_no, userid). */
-const bookingArgs: ApprovalDefinition['args'] = (d, status) => [
+/** Booking discount / package: (entity_cd, project_no, doc_no, lot_no, status, level_no, userid, remarks). */
+const bookingArgs: ApprovalDefinition['args'] = (d, status, reason) => [
   d.entity_cd,
   d.project_no,
   d.doc_no,
@@ -33,6 +33,7 @@ const bookingArgs: ApprovalDefinition['args'] = (d, status) => [
   status,
   d.level_no,
   d.user_id,
+  reason,
 ];
 
 /** Lot / lot temporary: (entity_cd, project_no, doc_no, status, level_no, grp_name, userid, remarks). */
@@ -108,7 +109,7 @@ export const SALES_BOOKING_DISC: ApprovalDefinition = {
   template: TEMPLATE,
   cacheFolder: 'send_salesbookingdisc',
   logLabel: 'Sales Booking Disc',
-  remarks: false,
+  remarks: true,
   payload: (b) => ({ project_no: input(b, 'project_no'), lot_no: input(b, 'lot_no') }),
   args: bookingArgs,
   rows: bookingRows,

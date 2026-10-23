@@ -1,3 +1,4 @@
+import { normalizeReason } from '../../common/approval/approval-status';
 import {
   entityName,
   input,
@@ -66,7 +67,6 @@ export interface LandDefinition {
   /** POST /api/<link>/feedback cache folder (LandFph / LandVerification only). */
   feedbackFolder?: string;
 }
-
 
 /** Columns of the processData() where-clause — every Land controller includes approve_seq. */
 export const LAND_KEY_FIELDS = [
@@ -856,7 +856,13 @@ export const LAND_SERTIFIKAT: LandDefinition = {
     ],
   }),
   // EXEC mgr.xrl_send_mail_approval_land_sertifikat entity_cd, doc_no, status, level_no (no remarks)
-  args: (data, status) => [data.entity_cd, data.doc_no, status, data.level_no],
+  args: (data, status, body) => [
+    data.entity_cd,
+    data.doc_no,
+    status,
+    data.level_no,
+    normalizeReason(body.reason, 'no note'),
+  ],
 };
 
 /** Every module served by the generic Land controllers. */

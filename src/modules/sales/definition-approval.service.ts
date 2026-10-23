@@ -156,7 +156,7 @@ export class DefinitionApprovalService {
       docNo: data.doc_no,
       text: def.label,
       procedure: def.procedure,
-      args: def.args(data, status, normalizeReason(body.reason, '')),
+      args: def.args(data, status, normalizeReason(body.reason, 'no note')),
       entityName: data.entity_name,
     });
   }

@@ -23,7 +23,7 @@
         <p>Add Comment</p>
         <textarea id="reason" name="reason" rows="3"></textarea>
       <% } else if (it.reasonOnApprove === 'hidden') { %>
-        <input type="hidden" name="reason" value="no reason">
+        <input type="hidden" name="reason" value="no note">
       <% } %>
     <% } else { %>
       <p>Please provide the reasons for requesting the cancellation of this revision</p>
