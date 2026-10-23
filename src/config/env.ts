@@ -12,7 +12,6 @@ const envSchema = z.object({
   APP_URL: z
     .url()
     .transform((v) => v.replace(/\/+$/, '')),
-  APP_KEY: z.string().min(1),
 
   DB_HOST: z.string().min(1),
   DB_PORT: z.coerce.number().int().positive().default(1433),

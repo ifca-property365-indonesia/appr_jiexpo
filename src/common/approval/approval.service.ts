@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { LaravelCryptService } from '../crypto/laravel-crypt.service';
-import { LinkTokenService } from '../crypto/link-token.service';
+import { LinkTokenService } from '../links/link-token.service';
 import { DatabaseService, inParams } from '../database/database.service';
 import { entityName } from '../helpers/entity.helper';
 import { ChannelLogger } from '../logger/channel-logger.service';
@@ -15,7 +14,7 @@ export const APPROVAL_TABLE = 'mgr.cb_cash_request_appr';
 const KEY_COLUMNS = ['doc_no', 'entity_cd', 'approve_seq', 'level_no', 'type', 'module', 'request_type', 'trx_type'] as const;
 export type ApprovalKey = Partial<Record<(typeof KEY_COLUMNS)[number], unknown>>;
 
-/** Decrypted link payload (data2Encrypt in the PHP controllers). */
+/** Link payload stored behind an approval token (mgr.approval_link). */
 export type LinkData = Record<string, any>;
 
 export type ApprovalState = 'processed' | 'missing' | 'pending';
@@ -67,15 +66,14 @@ export interface ApprovalMailRequest extends Omit<SendMailOptions, 'to'> {
 /**
  * Shared approval workflow used by every module:
  *  1. ERP calls POST /api/<module> → render + send the approval email once (mail guard).
- *  2. Approver opens GET /api/<module>/<A|R|C>/<encrypt> → confirmation page (if still pending).
+ *  2. Approver opens GET /api/<module>/<A|R|C>/<token> → confirmation page (if still pending).
  *  3. Confirmation form POSTs /api/<module>/getaccess → module stored procedure → result page.
  */
 @Injectable()
 export class ApprovalService {
   constructor(
     readonly db: DatabaseService,
-    readonly crypt: LaravelCryptService,
-    /** Short approval-link tokens: use links.issue()/links.resolve() for email links. */
+    /** Approval-link tokens: links.issue(payload) → token, links.resolve(token) → payload. */
     readonly links: LinkTokenService,
     readonly views: ViewService,
     readonly mail: MailService,
@@ -151,7 +149,7 @@ export class ApprovalService {
   }
 
   /**
-   * GET /<module>/<status>/<encrypt>: decrypts the link, checks the approval row and renders
+   * GET /<module>/<status>/<token>: resolves the link token, checks the approval row and renders
    * either the "restricted" result page or the confirmation form.
    */
   async confirmationPage(opts: {

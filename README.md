@@ -11,19 +11,19 @@ link, and the approver's choice is written back through the module's stored proc
 | Framework | Laravel 10 | NestJS 12 (Express), TypeScript 6 |
 | Database | `DB::connection('jiexpo')` (sqlsrv) | `mssql` 12 pool — `DatabaseService` |
 | Mail | Mailable + Blade | nodemailer 10 + Eta 4 templates — `MailService` / `ViewService` |
-| Link tokens | `Crypt::encrypt` | `LaravelCryptService` (same algorithm, same `APP_KEY`) |
+| Link tokens | `Crypt::encrypt` (~800 chars) | 10-char random token + `mgr.approval_link` — `LinkTokenService` |
 | Duplicate-send guard | `flock` + marker file | atomic lock file + same marker layout — `MailGuardService` |
 | Logs | Monolog channels | `ChannelLogger` (same files/paths) |
 | Config | `.env` | `.env` validated with zod at boot |
 
-Approval links carry a short random token (e.g. `82wfk44Hgi`, `LinkTokenService`); the link data is stored
-encrypted with `APP_KEY` in `mgr.approval_link` (create it with `../script/common/mgr.approval_link.Table.sql`).
-Long tokens from the PHP app or older links keep working as long as `APP_KEY` and `APP_URL` are unchanged.
+Approval links carry only a random token (e.g. `.../api/cbppu/A/82wfk44Hgi`); the link data is stored as JSON in
+`mgr.approval_link` (create it with `../script/common/mgr.approval_link.Table.sql` before the first start).
+Laravel `Crypt` tokens are not supported: this is a standalone service.
 
 ## Run
 
 ```bash
-cp .env.example .env   # fill DB_*, MAIL_*, APP_KEY (copy from Laravel .env), APP_URL
+cp .env.example .env   # fill DB_*, MAIL_*, APP_URL
 npm install
 npm run build
 npm run start:prod

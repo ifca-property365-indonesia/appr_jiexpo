@@ -1,36 +1,35 @@
 import { randomInt } from 'node:crypto';
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
-import { InvalidLinkException, LaravelCryptService } from './laravel-crypt.service';
 
 const ALPHABET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 export const TOKEN_LENGTH = 10;
-const SHORT_TOKEN = new RegExp(`^[0-9A-Za-z]{${TOKEN_LENGTH}}$`);
+const TOKEN = new RegExp(`^[0-9A-Za-z]{${TOKEN_LENGTH}}$`);
 /** SQL Server duplicate key errors (PK collision on a random token). */
 const DUPLICATE_KEY = new Set([2627, 2601]);
 
+/** Malformed or unknown approval-link token. */
+export class InvalidLinkException extends BadRequestException {}
+
 /**
- * Short approval-link tokens (e.g. `82wfk44Hgi`) instead of the ~800-char Laravel Crypt payload.
+ * Approval-link tokens (e.g. `82wfk44Hgi`).
  *
- * `issue()` stores the link data — still encrypted with APP_KEY — in mgr.approval_link and returns a random
- * 10-char base62 id (~59 bits of entropy). `resolve()` accepts both short tokens and the legacy long
- * tokens, so links already sent by the PHP app or older versions of this service keep working.
+ * `issue()` stores the link data (doc_no, entity_cd, level_no, type, ...) as JSON in mgr.approval_link under a
+ * random 10-char base62 token (~59 bits, crypto RNG — not guessable or enumerable). Only the token travels in the
+ * email; `resolve()` looks it up again when the approver clicks.
  */
 @Injectable()
 export class LinkTokenService {
-  constructor(
-    private readonly crypt: LaravelCryptService,
-    private readonly db: DatabaseService,
-  ) {}
+  constructor(private readonly db: DatabaseService) {}
 
   async issue(payload: Record<string, unknown>): Promise<string> {
-    const sealed = this.crypt.encrypt(payload);
+    const json = JSON.stringify(payload);
     for (let attempt = 0; attempt < 5; attempt++) {
       const token = randomToken();
       try {
         await this.db.query('INSERT INTO mgr.approval_link (token, payload) VALUES (@token, @payload)', {
           token,
-          payload: sealed,
+          payload: json,
         });
         return token;
       } catch (err) {
@@ -41,12 +40,10 @@ export class LinkTokenService {
   }
 
   async resolve<T = Record<string, any>>(token: string): Promise<T> {
-    if (!SHORT_TOKEN.test(token ?? '')) return this.crypt.decrypt<T>(token); // legacy long token
-    const sealed = await this.db.value<string>('SELECT payload FROM mgr.approval_link WHERE token = @token', {
-      token,
-    });
-    if (!sealed) throw new InvalidLinkException('Unknown approval link.');
-    return this.crypt.decrypt<T>(sealed);
+    if (!TOKEN.test(token ?? '')) throw new InvalidLinkException('Malformed approval link.');
+    const json = await this.db.value<string>('SELECT payload FROM mgr.approval_link WHERE token = @token', { token });
+    if (!json) throw new InvalidLinkException('Unknown approval link.');
+    return JSON.parse(json) as T;
   }
 }
 

@@ -5,10 +5,11 @@ Source app: `../approval_jiexpo` (Laravel 10). Reference port: `src/modules/cb/c
 ## Layout
 - `src/common/` — shared infrastructure (do not duplicate it in modules):
   - `approval/approval.service.ts` — the 3-step flow: `sendApprovalMail()` (+ `outcomeText()` / `outcomeCallback()`),
-    `confirmationPage()`, `runAction()`, `projectDescs()`, `resultPage()`, and raw access to `db`, `crypt`, `views`, `mail`, `guard`, `log`.
+    `confirmationPage()`, `runAction()`, `projectDescs()`, `resultPage()`, and raw access to `db`, `links`, `views`, `mail`, `guard`, `log`.
   - `approval/approval-status.ts` — `statusMeta(status)` (A/R/C labels, colours, images), `normalizeReason(reason, fallback)`.
   - `approval/maildata.registry.ts` — modules reachable via `/api/maildata` + `/api/getaccess` register here in `onModuleInit`.
-  - `crypto/laravel-crypt.service.ts` — `encrypt()/decrypt()` compatible with Laravel `Crypt` (same APP_KEY).
+  - `links/link-token.service.ts` — `issue(payload)` → 10-char token stored in `mgr.approval_link`, `resolve(token)` → payload.
+    The token travels as route param / form field `encrypt` and as `data.encrypted` in JSON callbacks (names kept for the SPs).
   - `database/database.service.ts` — `query/first/value/exists` with named params (`@doc_no`), `exec(sp, args[])`, `inParams()`.
   - `mail/mail.service.ts`, `mail/mail-guard.service.ts` — nodemailer + send-once markers (`storage/app/mail_cache/...`).
   - `logger/channel-logger.service.ts` — Laravel log channels (`sendmail`, `sendmailapproval`, `sendmailfeedback`, `resend`, `resend_apprlist`, `app`).
@@ -23,9 +24,9 @@ Source app: `../approval_jiexpo` (Laravel 10). Reference port: `src/modules/cb/c
 
 ## Rules
 - Keep every Laravel route path and HTTP method identical (`/api/...`). Controllers use `@Controller('api/<segment>')`.
-- Keep request field names, encrypted payload keys (`data2Encrypt`), stored-procedure names and argument order,
-  `type`/`type_module`/`text` values, cache folder names and marker key order exactly as in PHP — the ERP, the
-  database and already-sent email links depend on them.
+- Keep request field names, link payload keys (`data2Encrypt`), stored-procedure names and argument order,
+  `type`/`type_module`/`text` values, cache folder names and marker key order exactly as in PHP — the ERP and the
+  database depend on them.
 - Response shape: plain string where PHP returned a string, JSON (with the same HTTP status) where PHP returned
   `response()->json(...)`, HTML (via `ViewService`/`ApprovalService`) where PHP returned a view.
 - Entity name always goes through `entityName()` (default PT JAKARTA INTERNATIONAL EXPO).

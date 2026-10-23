@@ -1,11 +1,11 @@
 import { ArgumentsHost, Catch, ExceptionFilter } from '@nestjs/common';
 import type { Response } from 'express';
-import { InvalidLinkException } from '../crypto/laravel-crypt.service';
+import { InvalidLinkException } from '../links/link-token.service';
 import { ApprovalService } from '../approval/approval.service';
 
 /**
- * An approval link / form with a broken or tampered token renders the normal result page
- * (Laravel showed a DecryptException error page) instead of a JSON error.
+ * An approval link / form with a malformed or unknown token renders the normal result page
+ * instead of a JSON error.
  */
 @Catch(InvalidLinkException)
 export class InvalidLinkFilter implements ExceptionFilter {
@@ -20,7 +20,7 @@ export class InvalidLinkFilter implements ExceptionFilter {
       .type('html')
       .send(
         this.approval.resultPage({
-          Pesan: 'This approval link is invalid or has been modified. Please use the link from the original email.',
+          Pesan: 'This approval link is invalid or no longer available. Please use the link from the original email.',
           St: 'FAIL',
           notif: 'Invalid link !',
           image: 'reject.png',
