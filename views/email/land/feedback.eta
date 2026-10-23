@@ -1,0 +1,35 @@
+<%/*
+  Land feedback email with document details (POST /api/feedbackSph, /api/feedbacksubmission).
+  Data: user_name, bodyEMail, staff_act_send, attachments ([{ url, file_name }]),
+        rows? ([label, value][]), grid? ({ title?, headers, rows }), approve_list? (string[]).
+*/%>
+<% layout('/layouts/email') %>
+<h5 style="font-size:20px; font-weight:400; margin:0 0 15px;">Dear <%= it.user_name %>,</h5>
+<p style="margin:0 0 15px;"><%= it.bodyEMail %></p>
+<% if (it.rows && it.rows.length) { %>
+<%~ include('/partials/detail-table', { rows: it.rows }) %>
+<% } %>
+<% if (it.grid && it.grid.rows.length) { %>
+<% if (it.grid.title) { %>
+<p style="margin:0 0 5px;"><b><%= it.grid.title %></b></p>
+<% } %>
+<table role="presentation" cellpadding="4" cellspacing="0" border="0" width="100%" style="font-size:14px; color:#000000; border-collapse:collapse; margin:0 0 15px;">
+  <tr>
+<% for (const h of it.grid.headers) { %>
+    <th style="border:1px solid #000000; text-align:center; padding:8px;"><%= h %></th>
+<% } %>
+  </tr>
+<% for (const r of it.grid.rows) { %>
+  <tr>
+<% for (const c of r) { %>
+    <td style="border:1px solid #000000; padding:5px;"><%= c %></td>
+<% } %>
+  </tr>
+<% } %>
+</table>
+<% } %>
+<%~ include('/partials/attachments', { attachments: it.attachments, intro: 'To view detail transaction, please click the link below :' }) %>
+<%~ include('/partials/approvers', { list: it.approve_list }) %>
+<p style="margin:15px 0;"><b>Thank you,</b><br>
+  <%= it.staff_act_send %>
+</p>

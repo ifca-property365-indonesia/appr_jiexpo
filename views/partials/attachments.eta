@@ -1,0 +1,12 @@
+<%/*
+  Attachment link list; renders nothing when empty.
+  Data: attachments ([{ url, file_name }]), intro? (heading text).
+*/%>
+<% const items = (it.attachments || []).filter((a) => isFilled(a.url) && isFilled(a.file_name)) %>
+<% if (items.length) { %>
+<p style="margin:15px 0;"><%= it.intro || 'To view detail transaction, please click the link below :' %><br>
+<% for (const a of items) { %>
+  <a href="<%= a.url %>" target="_blank" style="color:#026735; text-decoration:none;"><%= a.file_name %></a><br>
+<% } %>
+</p>
+<% } %>

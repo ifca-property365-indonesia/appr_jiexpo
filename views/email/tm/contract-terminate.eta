@@ -1,0 +1,15 @@
+<%/*
+  Contract Termination (contractterminate) — see src/modules/tm/tm.definitions.ts.
+  Data: label, user_name, descs, rows ([label, value][]), link, encrypt,
+        sender_name / sender_addr / clarify_*, approve_list, entity_name.
+*/%>
+<% layout('/layouts/email') %>
+<h5 style="font-size:20px; font-weight:400; margin:0 0 15px;">Dear <%= it.user_name %>,</h5>
+<p style="margin:0 0 15px;">The following <%= it.label %> request requires your approval :</p>
+<% if (isFilled(it.descs)) { %>
+<p style="margin:0 0 15px;"><b><%= it.descs %></b></p>
+<% } %>
+<%~ include('/partials/detail-table', { rows: it.rows }) %>
+<%~ include('/partials/action-buttons', { link: it.link, encrypt: it.encrypt }) %>
+<%~ include('/partials/signature', it) %>
+<%~ include('/partials/approvers', { list: it.approve_list }) %>

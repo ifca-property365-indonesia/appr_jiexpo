@@ -1,0 +1,11 @@
+<%/* Contract Renew (contractrenew). Ported from email/contractrenew/send.blade.php. */%>
+<% layout('/layouts/email') %>
+<h5 style="font-size:20px; font-weight:400; margin:0 0 15px;">Dear <%= it.user_name %>,</h5>
+<p style="margin:0 0 15px;">Below is a Contract Renew that requires your approval :</p>
+<p style="margin:0 0 15px;">
+  <b><%= it.descs %></b><br>
+  <b>Contract Amount : <%= it.currency_cd %> <%= it.contract_sum %></b><br>
+</p>
+<%~ include('/partials/action-buttons', { link: it.link, encrypt: it.encrypt }) %>
+<%~ include('/partials/signature', it) %>
+<%~ include('/partials/approvers', { list: it.approve_list }) %>

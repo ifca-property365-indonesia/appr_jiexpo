@@ -1,0 +1,22 @@
+<%/* Contract Progress (cmprogress / cmprogresswu). Ported from email/cmprogress|cmprogresswu/send.blade.php. */%>
+<% layout('/layouts/email') %>
+<h5 style="font-size:20px; font-weight:400; margin:0 0 15px;">Dear <%= it.user_name %>,</h5>
+<p style="margin:0 0 15px;">Below is a Contract Progress that requires your approval :</p>
+<p style="margin:0 0 15px;">
+  <b>Contract No. :<%= it.contract_desc %></b><br>
+  With a total amount of <%= it.curr_cd %> <%= it.amount %><br>
+  and Previous Progress amount of <%= it.curr_cd %> <%= it.prev_progress_amt %><br>
+  on Current Progress on : <%= it.curr_progress %>%<br>
+  and Previous Progress on : <%= it.prev_progress %>%<br>
+  Progress No.: <%= it.progress_no %><br>
+  Progress : <%= it.surveyor %><br>
+</p>
+<%~ include('/partials/attachments', { attachments: it.attachments, intro: 'To view a detailed request for this progress, please click on the link below :' }) %>
+<% if (isFilled(it.doc_link) && /^https?:\/\//.test(it.doc_link)) { %>
+<p style="margin:0 0 15px;">This request comes with additional supporting documents, such as detailed specifications, that you can access from the link below :<br>
+  <a href="<%= it.doc_link %>" target="_blank" style="color:#026735;">Additional Document Link</a>
+</p>
+<% } %>
+<%~ include('/partials/action-buttons', { link: it.link, encrypt: it.encrypt }) %>
+<%~ include('/partials/signature', it) %>
+<%~ include('/partials/approvers', { list: it.approve_list }) %>

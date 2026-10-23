@@ -1,0 +1,4 @@
+<%/* Result / restricted page. Data: Pesan, image, entity_name (St, notif unused in markup). */%>
+<% layout('/layouts/page') %>
+<img class="state" src="<%= asset('images/' + it.image) %>" alt="<%= it.notif || 'status' %>">
+<p><%= it.Pesan %></p>

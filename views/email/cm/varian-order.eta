@@ -1,0 +1,18 @@
+<%/* Varian Order (varianorder). Ported from email/varianorder/send.blade.php. */%>
+<% layout('/layouts/email') %>
+<h5 style="font-size:20px; font-weight:400; margin:0 0 15px;">Dear <%= it.user_name %>,</h5>
+<p style="margin:0 0 15px;">Below is a Varian Order that requires your approval :</p>
+<p style="margin:0 0 15px;"><b><%= it.descs %></b></p>
+<p style="margin:0 0 15px;">
+  <b>VO No. :<%= it.doc_no %></b><br>
+  With a VO amount of <%= it.curr_cd %> <%= it.vo_sub_amt %><br>
+</p>
+<%~ include('/partials/attachments', { attachments: it.attachments, intro: 'To view a detailed request for this progress, please click on the link below :' }) %>
+<% if (isFilled(it.doc_link) && /^https?:\/\//.test(it.doc_link)) { %>
+<p style="margin:0 0 15px;">This request comes with additional supporting documents, such as detailed specifications, that you can access from the link below :<br>
+  <a href="<%= it.doc_link %>" target="_blank" style="color:#026735;">Additional Document Link</a>
+</p>
+<% } %>
+<%~ include('/partials/action-buttons', { link: it.link, encrypt: it.encrypt }) %>
+<%~ include('/partials/signature', it) %>
+<%~ include('/partials/approvers', { list: it.approve_list }) %>

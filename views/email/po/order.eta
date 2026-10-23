@@ -1,0 +1,20 @@
+<%/* Purchase Order (PoOrder, via /api/maildata). Ported from email/po/send.blade.php. */%>
+<% layout('/layouts/email') %>
+<h5 style="font-size:20px; font-weight:400; margin:0 0 15px;">Dear <%= it.user_name %>,</h5>
+<p style="margin:0 0 15px;">Below is a purchase order that requires your approval :</p>
+<p style="margin:0 0 15px;">
+<% it.order_remarks.forEach((remarks, i) => { %>
+  <% if (isFilled(remarks)) { %><b><%= remarks %></b><br><% } %>
+  <% if (isFilled(it.supplier_name[i])) { %><%= it.supplier_name[i] %><br><% } %>
+<% }) %>
+  With a total amount of <%= it.curr_cd %> <%= it.po_amt %><br>
+<% it.order_remarks.forEach((_, i) => { %>
+  <% if (isFilled(it.order_no[i])) { %>PO no : <%= it.order_no[i] %><br><% } %>
+  <% if (isFilled(it.remark[i])) { %>RF no : <%= it.remark[i] %><br><% } %>
+<% }) %>
+</p>
+<%~ include('/partials/attachments', { attachments: it.attachments, intro: 'To view a detailed product list, description, and estimate price per item, please click on the link below :' }) %>
+<%~ include('/email/po/doc-links', { links: it.doc_links }) %>
+<%~ include('/partials/action-buttons', { link: it.link, encrypt: it.encrypt }) %>
+<%~ include('/partials/signature', it) %>
+<%~ include('/partials/approvers', { list: it.approve_list }) %>

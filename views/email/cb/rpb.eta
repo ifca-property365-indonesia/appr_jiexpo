@@ -1,0 +1,13 @@
+<%/* Recapitulation Bank (CbRpb, via /api/maildata). Ported from email/cbrpb/send.blade.php. */%>
+<% layout('/layouts/email') %>
+<h5 style="font-size:20px; font-weight:400; margin:0 0 15px;">Dear <%= it.user_name %>,</h5>
+<p style="margin:0 0 15px;">Below is a recapitulation bank out that requires your approval :</p>
+<p style="margin:0 0 15px;">
+  <b><%= it.rpb_descs %></b><br>
+  With a total amount of <%= it.currency_cd %> <%= it.trx_amt %><br>
+  Doc No.: <%= it.hd_doc_no %><br>
+</p>
+<%~ include('/partials/attachments', { attachments: it.attachments, intro: 'To view a detailed recapitulation for bank transactions, description, and estimate price per item, please click on the link below :' }) %>
+<%~ include('/partials/action-buttons', { link: it.link, encrypt: it.encrypt }) %>
+<%~ include('/partials/signature', it) %>
+<%~ include('/partials/approvers', { list: it.approve_list }) %>

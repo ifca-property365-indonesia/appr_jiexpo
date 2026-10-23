@@ -1,0 +1,9 @@
+<%/* Numbered "already approved by" list; renders nothing when empty. Data: list (string[]), intro? */%>
+<% const names = (it.list || []).filter(isFilled) %>
+<% if (names.length) { %>
+<p style="margin:15px 0;"><%= it.intro || 'This request approval has been approved by :' %><br>
+<% names.forEach((n, i) => { %>
+  <%= i + 1 %>. <%= n %><br>
+<% }) %>
+</p>
+<% } %>

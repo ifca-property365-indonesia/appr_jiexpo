@@ -1,0 +1,22 @@
+<%/*
+  Staff feedback email (Approval / Revision / Cancellation notice back to the requester).
+  Collapses email/staffaction.blade.php, email/staffaction/{cb,cbfupd,pos,por,poorder}.blade.php
+  and email/additional/staffaction.blade.php — they only differed by the optional blocks below.
+  Data: entity_name, user_name, bodyEMail, staff_act_send,
+        attachments ([{ url, file_name }]), attachment_intro, doc_links (string[]).
+*/%>
+<% layout('/layouts/email') %>
+<h5 style="font-size:20px; font-weight:400; margin:0 0 15px;">Dear <%= it.user_name %>,</h5>
+<p style="margin:0 0 15px;"><%= it.bodyEMail %></p>
+<%~ include('/partials/attachments', { attachments: it.attachments, intro: it.attachment_intro }) %>
+<% const docs = (it.doc_links || []).filter(isFilled) %>
+<% if (docs.length) { %>
+<p style="margin:15px 0;">This request to purchase comes with additional supporting documents, such as detailed specifications, that you can access from the link below :<br>
+<% for (const doc of docs) { %>
+  <a href="<%= doc %>" target="_blank" style="color:#026735;">Additional Document Link</a><br>
+<% } %>
+</p>
+<% } %>
+<p style="margin:15px 0;"><b>Thank you,</b><br>
+  <%= it.staff_act_send %>
+</p>

@@ -1,0 +1,163 @@
+<%/*
+  Approval list with "Re-Send Email" (ported from resources/views/apprlist/index.blade.php).
+  Standalone page: DataTables server-side against GET /apprlist/data, resend via POST /apprlist/sendData.
+*/%>
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+
+        <title>Approval Lists</title>
+
+        <!-- DataTables CSS -->
+        <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+
+        <link rel="shortcut icon" type="image/x-icon" href="<%= asset('images/email_header.ico') %>">
+
+        <!-- jQuery -->
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+        <!-- DataTables JS -->
+        <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+
+        <style>
+            body { font-family: Arial, Helvetica, sans-serif; margin: 0; padding: 20px; }
+            .card-header { font-weight: bold; text-transform: uppercase; margin-bottom: 15px; }
+            .btn-primary { background: #026735; color: #fff; border: 0; border-radius: 3px; padding: 6px 12px; cursor: pointer; }
+        </style>
+    </head>
+    <body class="theme-dark" style="overflow: auto;">
+        <div class="grid-wrapper sidebar-bg bg1">
+            <div class="main">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <div class="caption uppercase">
+                                    Approval List
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-bordered table-hover init-datatable dataTable no-footer" id="DataTables_Table_0" role="grid" aria-describedby="DataTables_Table_0_info">
+                                    <thead class="thead-light">
+                                        <tr role="row">
+                                            <th>Entity Code</th>
+                                            <th>Document No</th>
+                                            <th>Approved Sequence</th>
+                                            <th>User ID</th>
+                                            <th>Level No</th>
+                                            <th>Status</th>
+                                            <th>Sent Mail Date</th>
+                                            <th>Module</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="loading-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 9999; justify-content: center; align-items: center; color: white; font-size: 20px;">
+            <span>Processing...</span>
+        </div>
+        <script>
+            $(document).ready(function() {
+                const escapeAttr = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+
+                $('#loading-overlay').hide();
+                const table = $('#DataTables_Table_0').DataTable({
+                    processing: true,
+                    serverSide: true,
+                    ajax: "<%= url('apprlist/data') %>",
+                    order: [[6, 'desc']],
+                    columns: [
+                        { data: 'entity_cd', name: 'entity_cd' },
+                        { data: 'doc_no', name: 'doc_no' },
+                        { data: 'approve_seq', name: 'approve_seq', visible: false },
+                        { data: 'user_id', name: 'user_id' },
+                        { data: 'level_no', name: 'level_no' },
+                        { data: 'status', name: 'status' },
+                        { data: 'sent_mail_date', name: 'sent_mail_date' },
+                        {
+                            data: null,
+                            name: 'cetak_option',
+                            orderable: false,
+                            searchable: false,
+                            render: function(data, type, row) {
+                                let options = {
+                                    'PO-S': 'Quotation',
+                                    'PO-Q': 'Purchase Requisition',
+                                    'PO-A': 'Purchase Order',
+                                    'CB-D': 'Recapitulation Bank',
+                                    'CB-E': 'Propose Transfer',
+                                    'CB-G': 'Cash Advance Settlement',
+                                    'CB-U': 'Payment Request',
+                                    'CB-V': 'Payment Request VVIP',
+                                    'CM-A': 'Contract Progress',
+                                    'CM-B': 'Contract Complete',
+                                    'CM-C': 'Warranty Complete',
+                                    'CM-D': 'Varian Order',
+                                    'CM-E': 'Contract Entry',
+                                    'CM-F': 'Contract Progress with Unit',
+                                    'PL-Y': 'PL Budget',
+                                    'TM-R': 'Contract Renew'
+                                };
+                                return options[`${row.module}-${row.TYPE}`] || '';
+                            }
+                        },
+                        {
+                            data: null,
+                            name: 'action',
+                            orderable: false,
+                            searchable: false,
+                            render: function(data, type, row) {
+                                return `<button class="btn btn-primary send-data"
+                                            data-entity_cd="${escapeAttr(row.entity_cd)}"
+                                            data-doc_no="${escapeAttr(row.doc_no)}"
+                                            data-user_id="${escapeAttr(row.user_id)}"
+                                            data-level_no="${escapeAttr(row.level_no)}"
+                                            data-approve_seq="${escapeAttr(row.approve_seq)}">
+                                            Re-Send Email
+                                        </button>`;
+                            }
+                        }
+                    ]
+                });
+
+                $('#DataTables_Table_0').on('click', '.send-data', function() {
+                    const btn = $(this);
+
+                    // Show the loading overlay while the request runs
+                    $('#loading-overlay').css('display', 'flex').hide().fadeIn();
+
+                    $.ajax({
+                        url: "<%= url('apprlist/sendData') %>",
+                        type: "POST",
+                        data: {
+                            entity_cd: btn.attr('data-entity_cd'),
+                            doc_no: btn.attr('data-doc_no'),
+                            user_id: btn.attr('data-user_id'),
+                            level_no: btn.attr('data-level_no'),
+                            approve_seq: btn.attr('data-approve_seq')
+                        },
+                        success: function(response) {
+                            console.log(response);
+                            alert("EMAIL RESEND");
+                            table.ajax.reload(null, false);
+                        },
+                        error: function(xhr) {
+                            alert("Terjadi kesalahan: " + xhr.responseText);
+                        },
+                        complete: function() {
+                            $('#loading-overlay').fadeOut();
+                        }
+                    });
+                });
+            });
+        </script>
+    </body>
+</html>

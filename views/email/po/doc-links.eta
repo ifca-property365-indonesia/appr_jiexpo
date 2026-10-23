@@ -1,0 +1,9 @@
+<%/* "Additional Document Link" list shared by the PO emails; renders nothing when empty. Data: links (string[]). */%>
+<% const links = (it.links || []).filter(isFilled) %>
+<% if (links.length) { %>
+<p style="margin:15px 0;">This request to purchase comes with additional supporting documents, such as detailed specifications, that you can access from the link below :<br>
+<% for (const link of links) { %>
+  <a href="<%= link %>" target="_blank" style="color:#026735;">Additional Document Link</a><br>
+<% } %>
+</p>
+<% } %>

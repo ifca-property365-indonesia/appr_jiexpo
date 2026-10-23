@@ -1,0 +1,13 @@
+<%/* Land payment submission. Ported from email/landsubmission/send.blade.php. */%>
+<% layout('/layouts/email') %>
+<h5 style="font-size:20px; font-weight:400; margin:0 0 15px;">Dear <%= it.user_name %>,</h5>
+<p style="margin:0 0 15px;">Below is a payment submission land that request your approval :</p>
+<p style="margin:0 0 15px;">
+  <b><%= it.desc_sub %></b><br>
+  With a total amount of IDR <%= it.request_amt %><br>
+  Submission no : <%= it.submission_no %><br>
+</p>
+<%~ include('/partials/attachments', { attachments: it.attachments, intro: 'To view payment details, please click on the link below :' }) %>
+<%~ include('/partials/action-buttons', { link: it.link, encrypt: it.encrypt }) %>
+<%~ include('/partials/signature', it) %>
+<%~ include('/partials/approvers', { list: it.approve_list }) %>

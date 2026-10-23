@@ -1,0 +1,9 @@
+<%/* Clarification contact + sender. Data: clarify_user, clarify_email, sender_name, sender_addr. */%>
+<% if (isFilled(it.clarify_user) || isFilled(it.clarify_email)) { %>
+<p style="margin:15px 0;">In case you need some clarification, kindly approach :<br>
+  <a href="mailto:<%= it.clarify_email %>" style="color:#026735; text-decoration:none;"><%= it.clarify_user %></a>
+</p>
+<% } %>
+<p style="margin:15px 0;"><b>Thank you,</b><br>
+  <a href="mailto:<%= it.sender_addr %>" style="color:#026735; text-decoration:none;"><%= it.sender_name %></a>
+</p>

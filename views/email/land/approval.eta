@@ -1,0 +1,46 @@
+<%/*
+  Shared Land approval email (all Land* modules except LandSubmission).
+  Ported from email/land*mail/send.blade.php, email/landfphMail/send, email/landverificationMail/send.
+  Data: the controller $dataArray plus link (route segment), encrypt, intro, rows? ([label, value][]),
+        grid? ({ title?, headers, rows }), attachmentsIntro?, approversIntro?, lang? ('id').
+*/%>
+<% layout('/layouts/email') %>
+<h5 style="font-size:20px; font-weight:400; margin:0 0 15px;">Dear <%= it.user_name %>,</h5>
+<p style="margin:0 0 15px;"><%= it.intro %></p>
+<% if (it.rows && it.rows.length) { %>
+<%~ include('/partials/detail-table', { rows: it.rows }) %>
+<% } %>
+<% if (it.grid) { %>
+<% if (it.grid.title) { %>
+<p style="margin:0 0 5px;"><b><%= it.grid.title %></b></p>
+<% } %>
+<table role="presentation" cellpadding="4" cellspacing="0" border="0" width="100%" style="font-size:14px; color:#000000; border-collapse:collapse; margin:0 0 15px;">
+  <tr>
+<% for (const h of it.grid.headers) { %>
+    <th style="border:1px solid #000000; text-align:center; padding:8px;"><%= h %></th>
+<% } %>
+  </tr>
+<% for (const r of it.grid.rows) { %>
+  <tr>
+<% for (const c of r) { %>
+    <td style="border:1px solid #000000; padding:5px;"><%= c %></td>
+<% } %>
+  </tr>
+<% } %>
+</table>
+<% } %>
+<%~ include('/partials/attachments', { attachments: it.attachments, intro: it.attachmentsIntro || 'To view detail transaction, please click the link below :' }) %>
+<%~ include('/partials/action-buttons', { link: it.link, encrypt: it.encrypt }) %>
+<% if (it.lang === 'id') { %>
+<% if (isFilled(it.clarify_user) || isFilled(it.clarify_email)) { %>
+<p style="margin:15px 0;">Jika butuh klarifikasi, silakan hubungi:<br>
+  <a href="mailto:<%= it.clarify_email %>" style="color:#026735; text-decoration:none;"><%= it.clarify_user %></a>
+</p>
+<% } %>
+<p style="margin:15px 0;"><b>Terima kasih,</b><br>
+  <a href="mailto:<%= it.sender_addr %>" style="color:#026735; text-decoration:none;"><%= it.sender_name %></a>
+</p>
+<% } else { %>
+<%~ include('/partials/signature', it) %>
+<% } %>
+<%~ include('/partials/approvers', { list: it.approve_list, intro: it.approversIntro }) %>

@@ -1,0 +1,13 @@
+<%/* Cash Advance Settlement (CbRum, via /api/maildata). Ported from email/cbrum/send.blade.php. */%>
+<% layout('/layouts/email') %>
+<h5 style="font-size:20px; font-weight:400; margin:0 0 15px;">Dear <%= it.user_name %>,</h5>
+<p style="margin:0 0 15px;">Below is a cash advance settlement that requires your approval :</p>
+<p style="margin:0 0 15px;">
+  <b><%= it.remarks_hd %></b><br>
+  With a total amount of <%= it.currency_cd %> <%= it.total_amt %><br>
+  Doc No.: <%= it.replenish_doc %><br>
+</p>
+<%~ include('/partials/attachments', { attachments: it.attachments, intro: 'To view a detailed recapitulation for bank transactions, description, and estimate price per item, please click on the link below :' }) %>
+<%~ include('/partials/action-buttons', { link: it.link, encrypt: it.encrypt }) %>
+<%~ include('/partials/signature', it) %>
+<%~ include('/partials/approvers', { list: it.approve_list }) %>

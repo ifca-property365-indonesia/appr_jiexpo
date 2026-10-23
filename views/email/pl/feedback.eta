@@ -1,0 +1,11 @@
+<%/*
+  RAB Budget feedback to the requester (Approval / Revision / Cancellation).
+  Ported from email/staffaction/plbudgetlyman.blade.php and plbudgetrevision.blade.php (identical bodies).
+  Data: entity_name, user_name, bodyEMail, staff_act_send.
+*/%>
+<% layout('/layouts/email') %>
+<h5 style="font-size:20px; font-weight:400; margin:0 0 15px;">Dear <%= it.user_name %>,</h5>
+<p style="margin:0 0 15px;"><%= it.bodyEMail %></p>
+<p style="margin:15px 0;"><b>Thank you,</b><br>
+  <%= it.staff_act_send %>
+</p>

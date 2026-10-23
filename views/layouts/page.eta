@@ -1,0 +1,35 @@
+<%/*
+  Layout for browser pages opened from email links (confirmation + result).
+  Data: entity_name, body.
+*/%>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>IFCA - JIExpo</title>
+  <link rel="shortcut icon" type="image/x-icon" href="<%= asset('images/email_header.ico') %>">
+  <style>
+    body { margin: 0; background: #ffffff; font-family: Arial, Helvetica, sans-serif; color: #000; }
+    .wrap { max-width: 620px; margin: 0 auto; padding: 40px 16px; text-align: center; }
+    .brand p { font-size: 16px; color: #026735; margin: 10px 0 25px; }
+    .card { background: #e0e0e0; padding: 50px 30px; }
+    .card img.state { width: 88px; margin-bottom: 24px; }
+    textarea { width: 100%; box-sizing: border-box; min-height: 80px; padding: 8px; font: inherit; border: 1px solid #ced4da; border-radius: 4px; }
+    .btn { color: #fff; border: 0; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 600; line-height: 44px; text-transform: uppercase; padding: 0 40px; margin: 10px; }
+    .footer { font-size: 13px; padding-top: 25px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="brand">
+      <img src="<%= logo(it.entity_name) %>" alt="logo" height="56">
+      <p><%= entityName(it.entity_name) %></p>
+    </div>
+    <div class="card">
+      <%~ it.body %>
+    </div>
+    <p class="footer">Copyright © <%= new Date().getFullYear() %> IFCA Software. All rights reserved.</p>
+  </div>
+</body>
+</html>
