@@ -27,10 +27,13 @@ export class LinkTokenService {
     for (let attempt = 0; attempt < 5; attempt++) {
       const token = randomToken();
       try {
-        await this.db.query('INSERT INTO mgr.approval_link (token, payload) VALUES (@token, @payload)', {
-          token,
-          payload: json,
-        });
+        await this.db.query(
+          'INSERT INTO mgr.approval_link (token, payload) VALUES (@token, @payload)',
+          {
+            token,
+            payload: json,
+          },
+        );
         return token;
       } catch (err) {
         if (!DUPLICATE_KEY.has((err as { number?: number }).number ?? -1)) throw err;
@@ -41,7 +44,10 @@ export class LinkTokenService {
 
   async resolve<T = Record<string, any>>(token: string): Promise<T> {
     if (!TOKEN.test(token ?? '')) throw new InvalidLinkException('Malformed approval link.');
-    const json = await this.db.value<string>('SELECT payload FROM mgr.approval_link WHERE token = @token', { token });
+    const json = await this.db.value<string>(
+      'SELECT payload FROM mgr.approval_link WHERE token = @token',
+      { token },
+    );
     if (!json) throw new InvalidLinkException('Unknown approval link.');
     return JSON.parse(json) as T;
   }

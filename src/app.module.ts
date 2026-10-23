@@ -4,6 +4,7 @@ import { ConfigModule } from '@nestjs/config';
 import { CommonModule } from './common/common.module';
 import { InvalidLinkFilter } from './common/http/invalid-link.filter';
 import { LaravelStatusInterceptor } from './common/http/laravel-status.interceptor';
+import { TransactionErrorInterceptor } from './common/http/transaction-error.interceptor';
 import { validateEnv } from './config/env';
 import { ApprListModule } from './modules/apprlist/apprlist.module';
 import { CbModule } from './modules/cb/cb.module';
@@ -37,6 +38,7 @@ import { TmModule } from './modules/tm/tm.module';
   ],
   providers: [
     { provide: APP_INTERCEPTOR, useClass: LaravelStatusInterceptor },
+    { provide: APP_INTERCEPTOR, useClass: TransactionErrorInterceptor },
     { provide: APP_FILTER, useClass: InvalidLinkFilter },
   ],
 })

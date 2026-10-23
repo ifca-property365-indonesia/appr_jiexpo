@@ -7,6 +7,7 @@ import type { NestExpressApplication } from '@nestjs/platform-express';
 import multer from 'multer';
 import { AppModule } from './app.module';
 import { PUBLIC_DIR } from './common/helpers/paths';
+import { TransactionLog } from './common/logger/transaction-log.service';
 import type { Env } from './config/env';
 
 async function bootstrap() {
@@ -16,6 +17,8 @@ async function bootstrap() {
   app.useBodyParser('json', { limit: '10mb' });
   app.useBodyParser('urlencoded', { extended: true, limit: '10mb' });
   app.use(multer({ limits: { fileSize: 10 * 1024 * 1024 } }).none());
+  // after body parsing: one transaction-log context per request (storage/logs/transactions/<DDMMYYYY>/<doc>.log)
+  app.use(app.get(TransactionLog).middleware());
 
   // Laravel served /public/* from the project root (APP_URL/public/images/...).
   app.useStaticAssets(PUBLIC_DIR, { prefix: '/public', maxAge: '7d' });

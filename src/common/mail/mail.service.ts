@@ -2,6 +2,7 @@ import { Injectable, OnApplicationShutdown } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createTransport, type Transporter } from 'nodemailer';
 import type { Env } from '../../config/env';
+import { elapsedMs, TransactionLog } from '../logger/transaction-log.service';
 import { ViewService } from '../view/view.service';
 
 export interface SendMailOptions {
@@ -28,6 +29,7 @@ export class MailService implements OnApplicationShutdown {
   constructor(
     config: ConfigService<Env, true>,
     private readonly views: ViewService,
+    private readonly tx: TransactionLog,
   ) {
     const encryption = config.get('MAIL_ENCRYPTION', { infer: true });
     const user = config.get('MAIL_USERNAME', { infer: true });
@@ -46,14 +48,32 @@ export class MailService implements OnApplicationShutdown {
 
   async send(options: SendMailOptions): Promise<void> {
     const name = options.entityName ? `${this.fromName} - ${options.entityName}` : this.fromName;
-    await this.transporter.sendMail({
-      from: { name, address: this.fromAddress },
+    const recipients = {
       to: options.to,
       cc: options.cc,
       bcc: options.bcc,
       subject: options.subject,
-      html: this.views.render(options.template, options.context),
-    });
+      template: options.template,
+    };
+    const started = process.hrtime.bigint();
+    try {
+      const info = await this.transporter.sendMail({
+        from: { name, address: this.fromAddress },
+        to: options.to,
+        cc: options.cc,
+        bcc: options.bcc,
+        subject: options.subject,
+        html: this.views.render(options.template, options.context),
+      });
+      this.tx.info('mail.sent', {
+        ...recipients,
+        message_id: info.messageId,
+        duration_ms: elapsedMs(started),
+      });
+    } catch (err) {
+      this.tx.error('mail.failed', { ...recipients, duration_ms: elapsedMs(started), error: err });
+      throw err;
+    }
   }
 
   onApplicationShutdown(): void {

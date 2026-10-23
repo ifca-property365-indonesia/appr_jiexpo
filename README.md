@@ -36,6 +36,32 @@ Requires Node.js ≥ 22.12 (NestJS 12 ships as ESM and is loaded via `require(es
 When deploying behind the existing reverse proxy, forward `/approval_jiexpo/*` to this service with the prefix
 stripped so `APP_URL/api/...` and `APP_URL/public/...` resolve as before.
 
+## Transaction log
+
+Every transaction is written as one JSON object per line, one file per document per day:
+`storage/logs/transactions/<DDMMYYYY>/<document>.log` (e.g. `23102026/CMEntry.log`, `23102026/LandMap.log`).
+All lines of one HTTP request share a `request_id` (also returned as the `X-Request-Id` response header).
+
+| event | when |
+| --- | --- |
+| `http.request` | every request: method, path, HTTP status, duration, key input fields (doc_no, entity_cd, level_no, ...) |
+| `mail.sent` / `mail.failed` | every email: to / cc / bcc, subject, template, SMTP message id or error |
+| `mail.skipped` | approval email not sent: no email address, already sent, send in progress |
+| `approval.open` | approver opened an Approve / Revise / Cancel link: doc, level, approver, row state |
+| `approval.action` | approver confirmed: action, doc_no, procedure, ok / error |
+| `approval.invalid-link` | malformed or unknown link token |
+| `sp.exec` | every stored-procedure call: procedure, arguments, duration, ok / error |
+| `db.error`, `http.error` | failed SQL statements and unhandled request errors, with the message |
+
+Document names come from the route (`src/common/logger/transaction-documents.ts`); `/api/maildata`,
+`/api/getaccess` and `/api/processdata/<module>` use the dispatched module (`CbRpb`, `PoOrder`, ...).
+Files are never rotated or deleted automatically.
+
+```bash
+grep '"doc_no":"CE01"' storage/logs/transactions/23102026/CMEntry.log   # one document
+grep '"level":"error"' storage/logs/transactions/23102026/*.log         # all failures of the day
+```
+
 ## Layout
 
 ```

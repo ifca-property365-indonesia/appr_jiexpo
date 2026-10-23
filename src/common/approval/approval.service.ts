@@ -3,6 +3,7 @@ import { LinkTokenService } from '../links/link-token.service';
 import { DatabaseService, inParams } from '../database/database.service';
 import { entityName } from '../helpers/entity.helper';
 import { ChannelLogger } from '../logger/channel-logger.service';
+import { TransactionLog } from '../logger/transaction-log.service';
 import { MailGuardService } from '../mail/mail-guard.service';
 import { MailService, type SendMailOptions } from '../mail/mail.service';
 import { ViewService } from '../view/view.service';
@@ -11,7 +12,16 @@ import { statusMeta } from './approval-status';
 export const APPROVAL_TABLE = 'mgr.cb_cash_request_appr';
 
 /** Columns of mgr.cb_cash_request_appr that may be used to identify one approval row. */
-const KEY_COLUMNS = ['doc_no', 'entity_cd', 'approve_seq', 'level_no', 'type', 'module', 'request_type', 'trx_type'] as const;
+const KEY_COLUMNS = [
+  'doc_no',
+  'entity_cd',
+  'approve_seq',
+  'level_no',
+  'type',
+  'module',
+  'request_type',
+  'trx_type',
+] as const;
 export type ApprovalKey = Partial<Record<(typeof KEY_COLUMNS)[number], unknown>>;
 
 /** Link payload stored behind an approval token (mgr.approval_link). */
@@ -79,13 +89,16 @@ export class ApprovalService {
     readonly mail: MailService,
     readonly guard: MailGuardService,
     readonly log: ChannelLogger,
+    readonly tx: TransactionLog,
   ) {}
 
   // ---------------------------------------------------------------- step 1: send email
 
   async sendApprovalMail(req: ApprovalMailRequest): Promise<SendOutcome> {
     const { email, cacheFolder, cacheKeys, logLabel, docNo, entityCd, ...mail } = req;
+    const doc = { doc_no: docNo, entity_cd: entityCd, label: logLabel };
     if (!email) {
+      this.tx.warning('mail.skipped', { ...doc, reason: 'no email address' });
       this.log.warning('sendmail', `No email address provided for document ${docNo}`);
       return { kind: 'no-email' };
     }
@@ -93,10 +106,22 @@ export class ApprovalService {
       const marker = this.guard.markerPath(cacheFolder, cacheKeys);
       const result = await this.guard.once(marker, () => this.mail.send({ ...mail, to: email }));
       if (result === 'sent') {
-        this.log.info('sendmailapproval', `Email ${logLabel} doc_no ${docNo} Entity ${entityCd} berhasil dikirim ke: ${email}`);
+        this.log.info(
+          'sendmailapproval',
+          `Email ${logLabel} doc_no ${docNo} Entity ${entityCd} berhasil dikirim ke: ${email}`,
+        );
         return { kind: 'sent', email };
       }
-      this.log.info('sendmailapproval', `Email ${logLabel} doc_no ${docNo} Entity ${entityCd} already sent to: ${email}`);
+      this.tx.info('mail.skipped', {
+        ...doc,
+        to: email,
+        reason: result === 'in-progress' ? 'send in progress' : 'already sent',
+        marker,
+      });
+      this.log.info(
+        'sendmailapproval',
+        `Email ${logLabel} doc_no ${docNo} Entity ${entityCd} already sent to: ${email}`,
+      );
       return { kind: 'already-sent', email };
     } catch (err) {
       const error = (err as Error).message;
@@ -122,10 +147,22 @@ export class ApprovalService {
   /** JSON callback used by the Land endpoints: { data, Error, Pesan, Status } with matching HTTP status. */
   outcomeCallback(outcome: SendOutcome, data: unknown) {
     const map = {
-      sent: { Error: false, Status: 200, Pesan: `Email berhasil dikirim ke: ${'email' in outcome ? outcome.email : ''}` },
-      'already-sent': { Error: false, Status: 201, Pesan: `Email sudah pernah dikirim ke: ${'email' in outcome ? outcome.email : ''}` },
+      sent: {
+        Error: false,
+        Status: 200,
+        Pesan: `Email berhasil dikirim ke: ${'email' in outcome ? outcome.email : ''}`,
+      },
+      'already-sent': {
+        Error: false,
+        Status: 201,
+        Pesan: `Email sudah pernah dikirim ke: ${'email' in outcome ? outcome.email : ''}`,
+      },
       'no-email': { Error: true, Status: 400, Pesan: 'No email address provided' },
-      failed: { Error: true, Status: 500, Pesan: `Gagal mengirim email: ${'error' in outcome ? outcome.error : ''}` },
+      failed: {
+        Error: true,
+        Status: 500,
+        Pesan: `Gagal mengirim email: ${'error' in outcome ? outcome.error : ''}`,
+      },
     } as const;
     return { data, ...map[outcome.kind] };
   }
@@ -174,6 +211,15 @@ export class ApprovalService {
       Object.fromEntries(fields.map((f) => [f, f === 'module' ? data.type_module : data[f]]));
 
     const state = await this.state(key);
+    this.tx.info('approval.open', {
+      action: statusMeta(opts.status).valuebt,
+      doc_no: data.doc_no,
+      entity_cd: data.entity_cd,
+      level_no: data.level_no,
+      approve_seq: data.approve_seq,
+      approver: data.email_address,
+      state,
+    });
     if (state !== 'pending') {
       const label = opts.label ?? data.text;
       const prefix = opts.alreadyPrefix ?? 'You Have Already Made a Request to';
@@ -221,6 +267,12 @@ export class ApprovalService {
     let page: ResultPage;
     try {
       await this.db.exec(opts.procedure, opts.args);
+      this.tx.info('approval.action', {
+        action: meta.valuebt,
+        doc_no: opts.docNo,
+        procedure: opts.procedure,
+        ok: true,
+      });
       page = {
         Pesan: `You Have Successfully ${meta.past} the ${opts.text} No. ${opts.docNo}`,
         St: 'OK',
@@ -228,7 +280,17 @@ export class ApprovalService {
         image: meta.image,
       };
     } catch (err) {
-      this.log.error('app', `${opts.procedure} failed for ${opts.docNo}: ${(err as Error).message}`);
+      this.tx.error('approval.action', {
+        action: meta.valuebt,
+        doc_no: opts.docNo,
+        procedure: opts.procedure,
+        ok: false,
+        error: err,
+      });
+      this.log.error(
+        'app',
+        `${opts.procedure} failed for ${opts.docNo}: ${(err as Error).message}`,
+      );
       page = {
         Pesan: `You Failed to ${meta.past} the ${opts.text} No. ${opts.docNo}`,
         St: 'FAIL',
@@ -252,12 +314,17 @@ export class ApprovalService {
 
   /** Render an arbitrary result page (errors, restricted, etc.). */
   resultPage(page: ResultPage): string {
-    return this.views.render('pages/result', { ...page, entity_name: entityName(page.entity_name) });
+    return this.views.render('pages/result', {
+      ...page,
+      entity_name: entityName(page.entity_name),
+    });
   }
 }
 
 function buildWhere(key: ApprovalKey) {
-  const entries = Object.entries(key).filter(([col]) => (KEY_COLUMNS as readonly string[]).includes(col));
+  const entries = Object.entries(key).filter(([col]) =>
+    (KEY_COLUMNS as readonly string[]).includes(col),
+  );
   if (!entries.length) throw new Error('Approval key must contain at least one column');
   return {
     where: entries.map(([col]) => `${col} = @k_${col}`).join(' AND '),

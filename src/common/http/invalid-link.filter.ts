@@ -12,6 +12,7 @@ export class InvalidLinkFilter implements ExceptionFilter {
   constructor(private readonly approval: ApprovalService) {}
 
   catch(exception: InvalidLinkException, host: ArgumentsHost): void {
+    this.approval.tx.warning('approval.invalid-link', { error: exception.message });
     this.approval.log.warning('app', `Invalid approval link: ${exception.message}`);
     host
       .switchToHttp()
@@ -20,7 +21,8 @@ export class InvalidLinkFilter implements ExceptionFilter {
       .type('html')
       .send(
         this.approval.resultPage({
-          Pesan: 'This approval link is invalid or no longer available. Please use the link from the original email.',
+          Pesan:
+            'This approval link is invalid or no longer available. Please use the link from the original email.',
           St: 'FAIL',
           notif: 'Invalid link !',
           image: 'reject.png',

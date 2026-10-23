@@ -4,6 +4,7 @@ import { MailDataRegistry } from './approval/maildata.registry';
 import { DatabaseService } from './database/database.service';
 import { LinkTokenService } from './links/link-token.service';
 import { ChannelLogger } from './logger/channel-logger.service';
+import { TransactionLog } from './logger/transaction-log.service';
 import { MailGuardService } from './mail/mail-guard.service';
 import { MailService } from './mail/mail.service';
 import { ViewService } from './view/view.service';
@@ -11,6 +12,7 @@ import { ViewService } from './view/view.service';
 const providers = [
   ApprovalService,
   ChannelLogger,
+  TransactionLog,
   DatabaseService,
   LinkTokenService,
   MailDataRegistry,

@@ -2,6 +2,7 @@ import { Injectable, Logger, OnApplicationShutdown } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import sql from 'mssql';
 import type { Env } from '../../config/env';
+import { elapsedMs, TransactionLog } from '../logger/transaction-log.service';
 
 export type SqlParams = Record<string, unknown>;
 
@@ -18,7 +19,10 @@ export class DatabaseService implements OnApplicationShutdown {
   readonly databaseName: string;
   private connecting?: Promise<sql.ConnectionPool>;
 
-  constructor(config: ConfigService<Env, true>) {
+  constructor(
+    config: ConfigService<Env, true>,
+    private readonly tx: TransactionLog,
+  ) {
     this.pool = new sql.ConnectionPool({
       server: config.get('DB_HOST', { infer: true }),
       port: config.get('DB_PORT', { infer: true }),
@@ -51,8 +55,19 @@ export class DatabaseService implements OnApplicationShutdown {
 
   /** Rows of the first recordset. */
   async query<T = Record<string, any>>(text: string, params?: SqlParams): Promise<T[]> {
-    const result = await (await this.request(params)).query<T>(text);
-    return result.recordset ?? [];
+    try {
+      const result = await (await this.request(params)).query<T>(text);
+      return result.recordset ?? [];
+    } catch (err) {
+      const code = (err as { number?: number }).number;
+      // duplicate keys are expected (approval_link token retry), anything else is a real failure
+      this.tx.log(code === 2627 || code === 2601 ? 'warning' : 'error', 'db.error', {
+        sql: text.replace(/\s+/g, ' ').trim().slice(0, 300),
+        error_number: code,
+        error: err,
+      });
+      throw err;
+    }
   }
 
   async first<T = Record<string, any>>(text: string, params?: SqlParams): Promise<T | undefined> {
@@ -66,7 +81,10 @@ export class DatabaseService implements OnApplicationShutdown {
   }
 
   async exists(text: string, params?: SqlParams): Promise<boolean> {
-    const row = await this.first(`SELECT CASE WHEN EXISTS (${text}) THEN 1 ELSE 0 END AS e`, params);
+    const row = await this.first(
+      `SELECT CASE WHEN EXISTS (${text}) THEN 1 ELSE 0 END AS e`,
+      params,
+    );
     return row?.e === 1;
   }
 
@@ -78,10 +96,23 @@ export class DatabaseService implements OnApplicationShutdown {
     if (!SP_NAME.test(procedure)) throw new Error(`Invalid stored procedure name: ${procedure}`);
     const params = Object.fromEntries(args.map((v, i) => [`p${i}`, v]));
     const placeholders = args.map((_, i) => `@p${i}`).join(', ');
-    const result = await (await this.request(params)).query(
-      `SET NOCOUNT ON; EXEC ${procedure} ${placeholders};`,
-    );
-    return (result.recordsets as Record<string, any>[][] | undefined) ?? [];
+    const started = process.hrtime.bigint();
+    try {
+      const result = await (
+        await this.request(params)
+      ).query(`SET NOCOUNT ON; EXEC ${procedure} ${placeholders};`);
+      this.tx.info('sp.exec', { procedure, args, ok: true, duration_ms: elapsedMs(started) });
+      return (result.recordsets as Record<string, any>[][] | undefined) ?? [];
+    } catch (err) {
+      this.tx.error('sp.exec', {
+        procedure,
+        args,
+        ok: false,
+        duration_ms: elapsedMs(started),
+        error: err,
+      });
+      throw err;
+    }
   }
 
   async onApplicationShutdown(): Promise<void> {
@@ -92,7 +123,8 @@ export class DatabaseService implements OnApplicationShutdown {
 /** Mirrors pdo_sqlsrv binding: strings as NVARCHAR, numbers as INT/FLOAT, null as NULL. */
 function bind(req: sql.Request, name: string, value: unknown): void {
   if (value === undefined || value === null) req.input(name, sql.NVarChar, null);
-  else if (typeof value === 'number') req.input(name, Number.isInteger(value) ? sql.Int : sql.Float, value);
+  else if (typeof value === 'number')
+    req.input(name, Number.isInteger(value) ? sql.Int : sql.Float, value);
   else if (value instanceof Date) req.input(name, sql.DateTime, value);
   else if (Array.isArray(value)) throw new Error(`Array parameter "${name}" — use inParams()`);
   else req.input(name, sql.NVarChar, String(value));
@@ -102,7 +134,15 @@ function bind(req: sql.Request, name: string, value: unknown): void {
  * Expands an array into named parameters for `IN (...)`:
  * `const { sql: list, params } = inParams('st', ['A','R'])` → `@st0, @st1`.
  */
-export function inParams(prefix: string, values: readonly unknown[]): { sql: string; params: SqlParams } {
+export function inParams(
+  prefix: string,
+  values: readonly unknown[],
+): { sql: string; params: SqlParams } {
   const params = Object.fromEntries(values.map((v, i) => [`${prefix}${i}`, v]));
-  return { sql: Object.keys(params).map((k) => `@${k}`).join(', '), params };
+  return {
+    sql: Object.keys(params)
+      .map((k) => `@${k}`)
+      .join(', '),
+    params,
+  };
 }

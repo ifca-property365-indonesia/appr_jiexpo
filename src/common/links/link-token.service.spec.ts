@@ -7,7 +7,8 @@ function fakeDb(collisions = 0) {
   return {
     rows,
     query: jest.fn((_sql: string, p: { token: string; payload: string }) => {
-      if (fail-- > 0 || rows.has(p.token)) return Promise.reject(Object.assign(new Error('dup'), { number: 2627 }));
+      if (fail-- > 0 || rows.has(p.token))
+        return Promise.reject(Object.assign(new Error('dup'), { number: 2627 }));
       rows.set(p.token, p.payload);
       return Promise.resolve([]);
     }),
@@ -44,8 +45,8 @@ describe('LinkTokenService', () => {
   });
 
   it('rejects unknown tokens', async () => {
-    await expect(new LinkTokenService(fakeDb() as never).resolve('82wfk44Hgi')).rejects.toBeInstanceOf(
-      InvalidLinkException,
-    );
+    await expect(
+      new LinkTokenService(fakeDb() as never).resolve('82wfk44Hgi'),
+    ).rejects.toBeInstanceOf(InvalidLinkException);
   });
 });

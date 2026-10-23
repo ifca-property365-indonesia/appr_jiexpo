@@ -56,7 +56,8 @@ export function todayStamp(): string {
 
 /** PHP number_format($v, $decimals, '.', ','); non-numeric input is treated as 0. */
 export function numberFormat(value: unknown, decimals = 2): string {
-  const n = typeof value === 'number' ? value : Number.parseFloat(String(value ?? '').replaceAll(',', ''));
+  const n =
+    typeof value === 'number' ? value : Number.parseFloat(String(value ?? '').replaceAll(',', ''));
   return (Number.isFinite(n) ? n : 0).toLocaleString('en-US', {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,

@@ -14,9 +14,27 @@ export interface StatusMeta {
 }
 
 const META: Record<ApprovalStatus, StatusMeta> = {
-  A: { name: 'Approval', bgcolor: '#40de1d', valuebt: 'Approve', past: 'Approved', image: 'approved.png' },
-  R: { name: 'Revision', bgcolor: '#f4bd0e', valuebt: 'Revise', past: 'Revised', image: 'revise.png' },
-  C: { name: 'Cancellation', bgcolor: '#e85347', valuebt: 'Cancel', past: 'Cancelled', image: 'reject.png' },
+  A: {
+    name: 'Approval',
+    bgcolor: '#40de1d',
+    valuebt: 'Approve',
+    past: 'Approved',
+    image: 'approved.png',
+  },
+  R: {
+    name: 'Revision',
+    bgcolor: '#f4bd0e',
+    valuebt: 'Revise',
+    past: 'Revised',
+    image: 'revise.png',
+  },
+  C: {
+    name: 'Cancellation',
+    bgcolor: '#e85347',
+    valuebt: 'Cancel',
+    past: 'Cancelled',
+    image: 'reject.png',
+  },
 };
 
 /** Anything other than A / R is treated as Cancel, exactly like the PHP controllers. */

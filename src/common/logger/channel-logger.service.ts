@@ -7,12 +7,7 @@ import { now, todayStamp } from '../helpers/format.helper';
 
 /** Log channels carried over from Laravel config/logging.php. */
 export type LogChannel =
-  | 'app'
-  | 'sendmail'
-  | 'sendmailfeedback'
-  | 'sendmailapproval'
-  | 'resend'
-  | 'resend_apprlist';
+  'app' | 'sendmail' | 'sendmailfeedback' | 'sendmailapproval' | 'resend' | 'resend_apprlist';
 
 type Level = 'info' | 'warning' | 'error';
 
