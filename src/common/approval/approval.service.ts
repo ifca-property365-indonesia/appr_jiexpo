@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { LaravelCryptService } from '../crypto/laravel-crypt.service';
+import { LinkTokenService } from '../crypto/link-token.service';
 import { DatabaseService, inParams } from '../database/database.service';
 import { entityName } from '../helpers/entity.helper';
 import { ChannelLogger } from '../logger/channel-logger.service';
@@ -74,6 +75,8 @@ export class ApprovalService {
   constructor(
     readonly db: DatabaseService,
     readonly crypt: LaravelCryptService,
+    /** Short approval-link tokens: use links.issue()/links.resolve() for email links. */
+    readonly links: LinkTokenService,
     readonly views: ViewService,
     readonly mail: MailService,
     readonly guard: MailGuardService,
@@ -165,7 +168,7 @@ export class ApprovalService {
     /** Form options, or a function of the decrypted payload returning them. */
     form: ConfirmForm | ((data: LinkData) => ConfirmForm);
   }): Promise<string> {
-    const data = this.crypt.decrypt<LinkData>(opts.encrypt);
+    const data = await this.links.resolve<LinkData>(opts.encrypt);
     this.log.info('app', `Decrypted data: ${JSON.stringify(data)}`);
     const fields = opts.keyFields ?? ['doc_no', 'entity_cd', 'level_no', 'type', 'module'];
     const key: ApprovalKey =

@@ -2,6 +2,7 @@ import { Global, Module } from '@nestjs/common';
 import { ApprovalService } from './approval/approval.service';
 import { MailDataRegistry } from './approval/maildata.registry';
 import { LaravelCryptService } from './crypto/laravel-crypt.service';
+import { LinkTokenService } from './crypto/link-token.service';
 import { DatabaseService } from './database/database.service';
 import { ChannelLogger } from './logger/channel-logger.service';
 import { MailGuardService } from './mail/mail-guard.service';
@@ -13,6 +14,7 @@ const providers = [
   ChannelLogger,
   DatabaseService,
   LaravelCryptService,
+  LinkTokenService,
   MailDataRegistry,
   MailGuardService,
   MailService,

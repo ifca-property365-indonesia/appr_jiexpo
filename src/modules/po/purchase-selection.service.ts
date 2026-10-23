@@ -28,7 +28,7 @@ export class PurchaseSelectionService {
     const urls = explode(body.url_file, '; ');
     const files = explode(body.file_name, '; ');
 
-    const encrypted = this.approval.crypt.encrypt({
+    const encrypted = await this.approval.links.issue({
       entity_cd: input(body, 'entity_cd'),
       project_no: input(body, 'project_no'),
       doc_no: input(body, 'doc_no'),
@@ -86,9 +86,9 @@ export class PurchaseSelectionService {
   }
 
   /** POST /api/poselection/getaccess and /api/pos/getaccess — PurchaseSelectionController@getaccess. */
-  getAccess(body: RequestInput): Promise<string> {
+  async getAccess(body: RequestInput): Promise<string> {
     const status = input(body, 'status') ?? '';
-    const data = this.approval.crypt.decrypt<LinkData>(input(body, 'encrypt') ?? '');
+    const data = await this.approval.links.resolve<LinkData>(input(body, 'encrypt') ?? '');
 
     // PHP: DateTime::createFromFormat('Y-m-d H:i:s', rtrim(trx_date, '.'))->format('d-m-Y').
     const trxDate = parseDate(String(data.trx_date ?? '').replace(/\.+$/, ''));

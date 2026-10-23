@@ -48,7 +48,7 @@ export class PlOverwriteService {
       link: LINK,
     };
 
-    const encrypted = this.approval.crypt.encrypt({
+    const encrypted = await this.approval.links.issue({
       entity_cd: input(body, 'entity_cd'),
       project_no: input(body, 'project_no'),
       email_address: input(body, 'email_addr'),
@@ -91,9 +91,9 @@ export class PlOverwriteService {
   }
 
   /** POST /api/ploverwrite/getaccess */
-  getAccess(body: RequestInput): Promise<string> {
+  async getAccess(body: RequestInput): Promise<string> {
     const status = input(body, 'status') ?? '';
-    const data = this.approval.crypt.decrypt<LinkData>(input(body, 'encrypt') ?? '');
+    const data = await this.approval.links.resolve<LinkData>(input(body, 'encrypt') ?? '');
     return this.approval.runAction({
       status,
       docNo: data.doc_no,

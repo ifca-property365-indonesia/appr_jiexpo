@@ -112,7 +112,7 @@ export class CbMailDataService implements OnModuleInit {
     const urls = explode(body.url_file, def.fileSeparator);
     const files = explode(body.file_name, def.fileSeparator);
 
-    const encrypted = this.approval.crypt.encrypt({
+    const encrypted = await this.approval.links.issue({
       entity_cd: input(body, 'entity_cd'),
       project_no: input(body, 'project_no'),
       doc_no: input(body, 'doc_no'),
@@ -157,7 +157,7 @@ export class CbMailDataService implements OnModuleInit {
 
   /** POST /api/getaccess module=<def.module> — Laravel <module>Controller@update. */
   async update(def: CbMailDataDef, status: string, encrypt: string, reason: string): Promise<string> {
-    const data = this.approval.crypt.decrypt(encrypt);
+    const data = await this.approval.links.resolve(encrypt);
     const descs = await this.approval.projectDescs(data.entity_cd, data.project_no);
     return this.approval.runAction({
       status,

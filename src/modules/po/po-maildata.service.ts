@@ -159,7 +159,7 @@ export class PoMailDataService implements OnModuleInit {
       context: {
         ...def.details(body),
         link: `processdata/${def.module}`,
-        encrypt: this.approval.crypt.encrypt(def.payload(body)),
+        encrypt: await this.approval.links.issue(def.payload(body)),
         entity_name: entity,
         user_name: input(body, 'user_name'),
         attachments: urls.map((url, i) => ({ url, file_name: files[i] ?? '' })),
@@ -180,8 +180,8 @@ export class PoMailDataService implements OnModuleInit {
   }
 
   /** POST /api/getaccess module=<def.module> — Laravel <module>Controller@update. */
-  update(def: PoMailDataDef, status: string, encrypt: string, reason: string): Promise<string> {
-    const data = this.approval.crypt.decrypt<LinkData>(encrypt);
+  async update(def: PoMailDataDef, status: string, encrypt: string, reason: string): Promise<string> {
+    const data = await this.approval.links.resolve<LinkData>(encrypt);
     return this.approval.runAction({
       status,
       docNo: data.doc_no,

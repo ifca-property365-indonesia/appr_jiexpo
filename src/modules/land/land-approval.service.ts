@@ -20,7 +20,7 @@ export class LandApprovalService {
     let data: { encrypted: string } | null = null;
     try {
       const payload = def.payload(body);
-      const encrypted = this.approval.crypt.encrypt((def.encrypt ?? standardEncrypt)(body, def));
+      const encrypted = await this.approval.links.issue((def.encrypt ?? standardEncrypt)(body, def));
       data = { encrypted };
 
       const outcome = await this.approval.sendApprovalMail({
@@ -55,9 +55,9 @@ export class LandApprovalService {
   }
 
   /** POST /api/<link>/getaccess */
-  getAccess(def: LandDefinition, body: RequestInput): Promise<string> {
+  async getAccess(def: LandDefinition, body: RequestInput): Promise<string> {
     const status = input(body, 'status') ?? '';
-    const data = this.approval.crypt.decrypt(input(body, 'encrypt') ?? '');
+    const data = await this.approval.links.resolve(input(body, 'encrypt') ?? '');
     const levelNo = def.levelNoAsInt
       ? Number.parseInt(String(data.level_no ?? ''), 10) || 0
       : data.level_no;

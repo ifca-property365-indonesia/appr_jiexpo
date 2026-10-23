@@ -23,7 +23,7 @@ export class LandSubmissionService {
   /** POST /api/landsubmission */
   async mail(body: RequestInput): Promise<string> {
     const entity = entityName(body.entity_name);
-    const encrypted = this.approval.crypt.encrypt({
+    const encrypted = await this.approval.links.issue({
       entity_cd: input(body, 'entity_cd'),
       doc_no: input(body, 'doc_no'),
       level_no: input(body, 'level_no'),
@@ -79,9 +79,9 @@ export class LandSubmissionService {
   }
 
   /** POST /api/landsubmission/update */
-  update(body: RequestInput): Promise<string> {
+  async update(body: RequestInput): Promise<string> {
     const status = input(body, 'status') ?? '';
-    const data = this.approval.crypt.decrypt(input(body, 'encrypt') ?? '');
+    const data = await this.approval.links.resolve(input(body, 'encrypt') ?? '');
     return this.approval.runAction({
       status,
       docNo: data.doc_no,

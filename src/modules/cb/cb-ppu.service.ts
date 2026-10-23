@@ -53,7 +53,7 @@ export class CbPpuService {
     const urls = explode(body.url_file, '; ');
     const files = explode(body.file_name, '; ');
 
-    const encrypted = this.approval.crypt.encrypt({
+    const encrypted = await this.approval.links.issue({
       entity_cd: input(body, 'entity_cd'),
       project_no: input(body, 'project_no'),
       doc_no: input(body, 'doc_no'),
@@ -113,7 +113,7 @@ export class CbPpuService {
   /** POST /api/<link>/getaccess */
   async getAccess(variant: PpuVariant, body: RequestInput): Promise<string> {
     const status = input(body, 'status') ?? '';
-    const data = this.approval.crypt.decrypt(input(body, 'encrypt') ?? '');
+    const data = await this.approval.links.resolve(input(body, 'encrypt') ?? '');
     const descs = await this.approval.projectDescs(data.entity_cd, data.project_no);
     return this.approval.runAction({
       status,

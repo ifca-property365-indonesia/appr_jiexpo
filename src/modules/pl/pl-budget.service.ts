@@ -69,7 +69,7 @@ export class PlBudgetService {
     const urls = explode(body.url_file, '; ');
     const files = explode(body.file_name, '; ');
 
-    const encrypted = this.approval.crypt.encrypt({
+    const encrypted = await this.approval.links.issue({
       entity_cd: input(body, 'entity_cd'),
       project_no: input(body, 'project_no'),
       email_address: input(body, 'email_addr'),
@@ -134,9 +134,9 @@ export class PlBudgetService {
   }
 
   /** POST /api/<link>/getaccess — the reason typed by the approver is not passed to these SPs. */
-  update(variant: PlBudgetVariant, body: RequestInput): Promise<string> {
+  async update(variant: PlBudgetVariant, body: RequestInput): Promise<string> {
     const status = input(body, 'status') ?? '';
-    const data = this.approval.crypt.decrypt<LinkData>(input(body, 'encrypt') ?? '');
+    const data = await this.approval.links.resolve<LinkData>(input(body, 'encrypt') ?? '');
     return this.approval.runAction({
       status,
       docNo: data.doc_no,

@@ -91,7 +91,7 @@ export class DefinitionApprovalService {
   async mail(def: ApprovalDefinition, body: RequestInput) {
     const entity = entityName(body.entity_name);
     const docNo = input(body, 'doc_no') ?? '';
-    const encrypted = this.approval.crypt.encrypt({
+    const encrypted = await this.approval.links.issue({
       entity_cd: input(body, 'entity_cd'),
       doc_no: input(body, 'doc_no'),
       level_no: input(body, 'level_no'),
@@ -148,9 +148,9 @@ export class DefinitionApprovalService {
     });
   }
 
-  getAccess(def: ApprovalDefinition, body: RequestInput): Promise<string> {
+  async getAccess(def: ApprovalDefinition, body: RequestInput): Promise<string> {
     const status = input(body, 'status') ?? '';
-    const data = this.approval.crypt.decrypt<LinkData>(input(body, 'encrypt') ?? '');
+    const data = await this.approval.links.resolve<LinkData>(input(body, 'encrypt') ?? '');
     return this.approval.runAction({
       status,
       docNo: data.doc_no,

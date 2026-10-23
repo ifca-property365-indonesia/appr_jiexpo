@@ -16,7 +16,9 @@ link, and the approver's choice is written back through the module's stored proc
 | Logs | Monolog channels | `ChannelLogger` (same files/paths) |
 | Config | `.env` | `.env` validated with zod at boot |
 
-Links already sent by the PHP app keep working as long as `APP_KEY` and `APP_URL` are unchanged.
+Approval links carry a short random token (e.g. `82wfk44Hgi`, `LinkTokenService`); the link data is stored
+encrypted with `APP_KEY` in `mgr.approval_link` (create it with `../script/common/mgr.approval_link.Table.sql`).
+Long tokens from the PHP app or older links keep working as long as `APP_KEY` and `APP_URL` are unchanged.
 
 ## Run
 

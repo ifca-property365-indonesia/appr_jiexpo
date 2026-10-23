@@ -231,7 +231,7 @@ export class CmService {
     const outcome = await this.send(
       def,
       body,
-      this.approval.crypt.encrypt(def.payload(body, entityName(body.entity_name))),
+      await this.approval.links.issue(def.payload(body, entityName(body.entity_name))),
     );
     if (outcome.kind === 'sent' && def.sentText) return def.sentText;
     if (outcome.kind === 'no-email' && def.noEmailText) return def.noEmailText;
@@ -244,7 +244,7 @@ export class CmService {
    * echoed the whole request payload, dropped here).
    */
   async mailJson(def: CmDefinition, body: RequestInput) {
-    const encrypted = this.approval.crypt.encrypt(def.payload(body, entityName(body.entity_name)));
+    const encrypted = await this.approval.links.issue(def.payload(body, entityName(body.entity_name)));
     const outcome = await this.send(def, body, encrypted);
     return this.approval.outcomeCallback(outcome, { encrypted });
   }
@@ -298,9 +298,9 @@ export class CmService {
   }
 
   /** POST /api/<link>/getaccess — Laravel <Controller>@update. */
-  update(def: CmDefinition, body: RequestInput): Promise<string> {
+  async update(def: CmDefinition, body: RequestInput): Promise<string> {
     const status = input(body, 'status') ?? '';
-    const data = this.approval.crypt.decrypt<LinkData>(input(body, 'encrypt') ?? '');
+    const data = await this.approval.links.resolve<LinkData>(input(body, 'encrypt') ?? '');
     return this.approval.runAction({
       status,
       docNo: data.doc_no,
